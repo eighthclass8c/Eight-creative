@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Chat - EightCreative</title>
+    <style>
+        /* --- RESET & BASIC --- */
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+        body { background-color: #000000; color: #e7e9ea; overflow-x: hidden; }
+
+        /* --- NAVBAR (Header) --- */
+        .navbar {
+            position: fixed; top: 0; left: 0; width: 100%; height: 53px;
+            background-color: #16181c; border-bottom: 1px solid #2f3336;
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 0 16px; z-index: 1000;
+        }
+        .nav-title { font-size: 20px; font-weight: 800; color: #fff; }
+        .nav-logo-container { position: absolute; left: 50%; transform: translateX(-50%); display: flex; align-items: center; }
+        .nav-logo { width: 30px; height: auto; }
+        .nav-exit-btn { color: #fff; display: flex; align-items: center; padding: 8px; margin-right: -8px; }
+        .nav-exit-btn svg { width: 24px; height: 24px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+
+        /* --- DAFTAR CHAT (List View) --- */
+        .chat-list-container { padding-top: 54px; width: 100%; }
+        
+        /* Elemen Chat (Baris) */
+        .chat-item { 
+            display: flex; 
+            align-items: center; /* Foto & Teks sejajar vertikal */
+            padding: 12px 16px; 
+            border-bottom: 1px solid #2f3336; 
+            cursor: pointer; 
+            transition: background 0.2s; 
+        }
+        .chat-item:active { background-color: #1d1f23; }
+
+        /* Foto Profil (Kiri) */
+        .avatar-wrapper { 
+            position: relative; 
+            margin-right: 12px; /* Jarak antara foto dan teks */
+            cursor: pointer; 
+            flex-shrink: 0; /* Agar foto tidak mengecil */
+        }
+        .avatar-img { 
+            width: 45px; height: 45px; 
+            border-radius: 50%; 
+            object-fit: cover; 
+            border: 1px solid #2f3336; 
+            display: block; 
+        }
+
+        /* Area Teks (Nama & Status) */
+        .chat-info { 
+            flex: 1; 
+            display: flex; 
+            flex-direction: column; 
+            justify-content: center; 
+        }
+        
+        /* Nama Eight C (Atas) */
+        .chat-name { 
+            font-size: 16px; 
+            font-weight: 700; 
+            color: #fff; 
+            margin-bottom: 2px;
+            display: flex; 
+            align-items: center;
+            gap: 4px; /* Jarak nama ke centang */
+        }
+        
+        /* Status (Bawah) */
+        .chat-status { font-size: 13px; color: #00ba00; }
+
+        /* --- CENTANG BIRU (VERIFIED) --- */
+        .verified-badge {
+            width: 14px;
+            height: 14px;
+            object-fit: contain;
+            pointer-events: none; /* Tidak bisa diklik */
+            user-select: none;    /* Tidak bisa diblok */
+            -webkit-user-drag: none; /* Tidak bisa di-drag/download */
+        }
+
+        /* --- HALAMAN CHAT ROOM (Inside Chat) --- */
+        #chatRoomView { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 2000; flex-direction: column; }
+        
+        .chat-navbar { height: 53px; background-color: #16181c; border-bottom: 1px solid #2f3336; display: flex; align-items: center; padding: 0 10px; flex-shrink: 0; }
+        .back-btn { color: #fff; background: none; border: none; font-size: 24px; padding: 0 10px 0 0; cursor: pointer; display: flex; align-items: center; }
+        
+        /* Profil di Navbar Room */
+        .room-profile { display: flex; align-items: center; flex: 1; }
+        .room-avatar { width: 35px; height: 35px; border-radius: 50%; margin-right: 10px; cursor: pointer; }
+        .room-info { display: flex; flex-direction: column; }
+        
+        /* Nama di Room */
+        .room-name { 
+            font-size: 15px; 
+            font-weight: 700; 
+            color: #fff; 
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .room-status { font-size: 12px; color: #00be06; }
+
+        /* --- AREA PESAN --- */
+        .messages-area {
+            flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 15px; padding-bottom: 20px;
+        }
+
+        /* Disclaimer Box */
+        .chat-notice {
+            background-color: #202327; 
+            border: 1px solid #2f3336;
+            color: #71767b;
+            font-size: 12px;
+            text-align: center;
+            padding: 12px;
+            border-radius: 12px;
+            margin-bottom: 10px;
+            line-height: 1.4;
+        }
+
+        .bubble {
+            max-width: 85%;
+            padding: 10px;
+            border-radius: 12px;
+            font-size: 15px;
+            line-height: 1.4;
+            animation: popIn 0.3s ease;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+        }
+        .bubble-left { background-color: #2f3336; align-self: flex-start; border-bottom-left-radius: 4px; }
+        .bubble-right { background-color: #00BA7C; color: #fff; align-self: flex-end; border-bottom-right-radius: 4px; }
+
+        /* --- CUSTOM VIDEO PLAYER --- */
+        .video-wrapper {
+            position: relative;
+            width: 100%;
+            height: auto;
+            border-radius: 8px;
+            overflow: hidden;
+            background: #000;
+            margin-bottom: 6px;
+            border: 1px solid #2f3336;
+        }
+        .video-wrapper video {
+            width: 100%;
+            display: block;
+            cursor: pointer;
+        }
+        .center-play-icon {
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            width: 50px; height: 50px;
+            background: rgba(0,0,0,0.5);
+            border-radius: 50%;
+            display: flex; justify-content: center; align-items: center;
+            pointer-events: none;
+            transition: opacity 0.2s;
+        }
+        .center-play-icon::after {
+            content: '▶'; color: white; font-size: 24px; margin-left: 4px;
+        }
+        .video-wrapper.playing .center-play-icon { opacity: 0; }
+
+        /* Progress Bar (Garis Putih) */
+        .video-progress-container {
+            position: absolute; bottom: 38px; left: 0; width: 100%; height: 3px; background: rgba(255,255,255,0.2); z-index: 5;
+        }
+        .video-progress-bar {
+            height: 100%; background-color: #fff; width: 0%; transition: width 0.1s linear;
+        }
+
+        .video-controls {
+            position: absolute; bottom: 0; left: 0; width: 100%; height: 38px; padding: 0 10px;
+            background: linear-gradient(to top, rgba(0,0,0,0.9), rgba(0,0,0,0.6));
+            display: flex; justify-content: space-between; align-items: center; z-index: 6;
+        }
+        
+        .time-display { font-size: 12px; color: #fff; font-weight: 500; text-shadow: 0 1px 2px rgba(0,0,0,0.8); }
+        .speed-btn {
+            background: rgba(255, 255, 255, 0.2); border: 1px solid rgba(255,255,255,0.4); color: #fff;
+            font-size: 11px; padding: 2px 6px; border-radius: 4px; cursor: pointer;
+            backdrop-filter: blur(4px); font-weight: bold;
+        }
+
+        .msg-media-img { width: 100%; height: auto; border-radius: 8px; margin-bottom: 6px; cursor: pointer; display: block; }
+        .msg-text { margin-bottom: 2px; word-wrap: break-word; }
+        .msg-time { font-size: 10px; text-align: right; margin-top: 4px; opacity: 0.7; font-style: italic; }
+        .bubble-right .msg-time { color: rgba(255,255,255,0.9); }
+        .bubble-left .msg-time { color: #8899a6; }
+
+        @keyframes popIn { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
+        .chat-footer { height: 60px; background-color: #16181c; border-top: 1px solid #2f3336; display: flex; align-items: center; justify-content: center; color: #71767b; font-size: 14px; font-style: italic; flex-shrink: 0; text-align: center; padding: 0 20px; }
+
+        /* MODAL */
+        .image-modal { display: none; position: fixed; z-index: 5000; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.95); justify-content: center; align-items: center; animation: fadeIn 0.3s ease; }
+        .image-modal img { max-width: 90%; max-height: 90%; border-radius: 10px; box-shadow: 0 0 20px rgba(255,255,255,0.1); }
+        .close-modal { position: absolute; top: 20px; right: 20px; color: #fff; font-size: 30px; cursor: pointer; background: rgba(255,255,255,0.2); width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+    </style>
+</head>
+<body>
+
+    <div id="chatListView">
+        <nav class="navbar">
+            <div class="nav-title">Chat</div>
+            <div class="nav-logo-container">
+                <img src="1763859548159.png" class="nav-logo" alt="Logo">
+            </div>
+            <a href="feed.html" class="nav-exit-btn">
+                <svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+            </a>
+        </nav>
+
+        <main class="chat-list-container">
+            <div class="chat-item">
+                <div class="avatar-wrapper" onclick="openImage('1763859548159.png'); event.stopPropagation();">
+                    <img src="1763859548159.png" class="avatar-img" alt="Eight C">
+                </div>
+                
+                <div class="chat-info" onclick="enterChat()">
+                    <div class="chat-name">
+                        Eight C
+                        <img src="verifikasi.png" class="verified-badge" alt="✓">
+                    </div>
+                    <div class="chat-status">Akun Resmi VIIC</div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <div id="chatRoomView">
+        <nav class="chat-navbar">
+            <button class="back-btn" onclick="exitChat()">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+            </button>
+            <div class="room-profile">
+                <img src="1763859548159.png" class="room-avatar" onclick="openImage('1763859548159.png')">
+                <div class="room-info">
+                    <span class="room-name">
+                        Eight C
+                        <img src="verifikasi.png" class="verified-badge" alt="✓">
+                    </span>
+                    <span class="room-status">Akun Resmi VIIC</span>
+                </div>
+            </div>
+        </nav>
+
+        <div class="messages-area" id="messageContainer">
+            <div class="chat-notice">
+                Pesan bersifat publik, pesan yang di kirim admin adalah pesan untuk media informasi lebih lanjut mengenai website ini, fitur Chat ini tidak melibatkan Email, nomor telepon ataupun Data pribadi Anda.
+            </div>
+        </div>
+
+        <div class="chat-footer">
+            Hanya admin yang dapat mengirim pesan
+        </div>
+    </div>
+
+    <div id="imageModal" class="image-modal" onclick="closeImage()">
+        <span class="close-modal">&times;</span>
+        <img id="modalImg" src="" alt="Full Size" oncontextmenu="return false;">
+    </div>
+
+    <script>
+        function enterChat() {
+            document.getElementById('chatListView').style.display = 'none';
+            document.getElementById('chatRoomView').style.display = 'flex';
+            scrollToBottom(); 
+        }
+
+        function exitChat() {
+            document.getElementById('chatRoomView').style.display = 'none';
+            document.getElementById('chatListView').style.display = 'block';
+        }
+
+        function openImage(src) {
+            const modal = document.getElementById('imageModal');
+            document.getElementById('modalImg').src = src;
+            modal.style.display = 'flex';
+        }
+
+        function closeImage() {
+            document.getElementById('imageModal').style.display = 'none';
+        }
+
+        function scrollToBottom() {
+            const container = document.getElementById('messageContainer');
+            setTimeout(() => {
+                container.scrollTop = container.scrollHeight;
+            }, 100);
+        }
+
+        // --- LOGIKA VIDEO ---
+        function formatTime(seconds) {
+            const m = Math.floor(seconds / 60);
+            const s = Math.floor(seconds % 60);
+            return `${m}:${s < 10 ? '0' : ''}${s}`;
+        }
+
+        function toggleVideo(wrapper) {
+            const video = wrapper.querySelector('video');
+            if (video.paused) {
+                video.play();
+                wrapper.classList.add('playing');
+            } else {
+                video.pause();
+                wrapper.classList.remove('playing');
+            }
+        }
+
+        function updateTime(video) {
+            const wrapper = video.parentElement;
+            const timeDisplay = wrapper.querySelector('.time-display');
+            const progressBar = wrapper.querySelector('.video-progress-bar');
+            
+            const current = formatTime(video.currentTime);
+            const total = formatTime(video.duration || 0);
+            
+            timeDisplay.textContent = `${current} / ${total}`;
+
+            if (video.duration) {
+                const percent = (video.currentTime / video.duration) * 100;
+                progressBar.style.width = `${percent}%`;
+            }
+            
+            if (video.ended) {
+                wrapper.classList.remove('playing');
+            }
+        }
+
+        function changeSpeed(event, btn) {
+            event.stopPropagation();
+            const video = btn.closest('.video-wrapper').querySelector('video');
+            let currentSpeed = video.playbackRate;
+            let newSpeed = 1;
+            if (currentSpeed === 1) newSpeed = 2;
+            else if (currentSpeed === 2) newSpeed = 4;
+            else if (currentSpeed === 4) newSpeed = 8;
+            else newSpeed = 1;
+
+            video.playbackRate = newSpeed;
+            btn.textContent = newSpeed + 'x';
+        }
+
+        // --- TAMBAH PESAN ---
+        function tambahPesan(tipe, mediaSrc, pesanTeks, hari, jam, isMe) {
+            const container = document.getElementById('messageContainer');
+            const bubble = document.createElement('div');
+            
+            bubble.className = isMe ? 'bubble bubble-right' : 'bubble bubble-left';
+            
+            let contentHTML = '';
+
+            if (tipe === 'image' && mediaSrc) {
+                contentHTML += `<img src="${mediaSrc}" class="msg-media-img" onclick="openImage('${mediaSrc}')" oncontextmenu="return false;">`;
+            } 
+            else if (tipe === 'video' && mediaSrc) {
+                contentHTML += `
+                    <div class="video-wrapper" onclick="toggleVideo(this)">
+                        <video src="${mediaSrc}" ontimeupdate="updateTime(this)" onloadedmetadata="updateTime(this)" oncontextmenu="return false;"></video>
+                        <div class="center-play-icon"></div>
+                        <div class="video-progress-container">
+                            <div class="video-progress-bar"></div>
+                        </div>
+                        <div class="video-controls">
+                            <span class="time-display">0:00 / 0:00</span>
+                            <button class="speed-btn" onclick="changeSpeed(event, this)">1x</button>
+                        </div>
+                    </div>
+                `;
+            }
+
+            if (pesanTeks) {
+                contentHTML += `<div class="msg-text">${pesanTeks}</div>`;
+            }
+
+            contentHTML += `<div class="msg-time">${hari}, ${jam}</div>`;
+
+            bubble.innerHTML = contentHTML;
+            container.appendChild(bubble);
+        }
+
+        // =========================================================
+        //  PENGATURAN PESAN
+        // =========================================================
+        
+        tambahPesan('text', '', 'Ada yang baru di Ui 1.5 ?', 'senin', '05.08', false);
+tambahPesan('video', 'lv_0_20260121173432.mp4', 'Silakan tonton video dokumentasi kegiatan di atas.', 'Selasa', '12.30', false);
+        tambahPesan('text', '', 'kalau ada bug Lapor ya', 'senin', '15.55', false);
+        tambahPesan('text', '', 'mau tambah fitur apa lagi?', 'senin', '15.55', false);
+         
+        // =========================================================
+
+    </script>
+
+</body>
+</html>
