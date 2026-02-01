@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Feed EightCreative - Promo Link</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+        body { background:#000; color:#e7e9ea; overflow-x:hidden; }
+
+        /* Navbar */
+        .navbar { position:fixed; top:0; left:0; width:100%; height:53px; background:rgba(0,0,0,0.8); backdrop-filter:blur(12px); display:flex; justify-content:center; align-items:center; border-bottom:1px solid #2f3336; z-index:1000; }
+        
+        .nav-logo { width:35px; }
+        
+        /* Tombol Keluar (Kanan) */
+        .home-btn { position:absolute; right:16px; color:#fff; font-weight:bold; font-size:18px; padding:5px 12px; border:1px solid #2f3336; border-radius:20px; text-decoration:none; }
+
+        /* --- BARU: Ikon Kiri (Chat & Layout) --- */
+        .nav-left {
+            position: absolute;
+            left: 16px;
+            display: flex;
+            align-items: center;
+            gap: 20px; /* Jarak antar ikon */
+        }
+
+        .nav-icon-link {
+            color: #fff;
+            font-size: 20px; /* Ukuran ikon */
+            text-decoration: none;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: color 0.3s;
+        }
+
+        .nav-icon-link:hover {
+            color: #00BA7C; /* Efek hover hijau (opsional) */
+        }
+
+        /* Lingkaran Merah Notifikasi */
+        .notification-dot {
+            position: absolute;
+            top: -3px;
+            right: -3px;
+            width: 9px;
+            height: 9px;
+            background-color: #ff0000;
+            border-radius: 50%;
+            border: 1px solid #000; /* Garis tepi kecil agar kontras */
+        }
+
+        .main-container { max-width:600px; margin:0 auto; padding-top:53px; border-left:1px solid #2f3336; border-right:1px solid #2f3336; min-height:100vh; padding-bottom:80px; }
+
+        .post { padding:12px 16px; border-bottom:1px solid #2f3336; }
+        .post-header { display:flex; gap:12px; margin-bottom:8px; }
+        .profile-pic { width:40px; height:40px; border-radius:50%; object-fit:cover; }
+        .name-row { display:flex; align-items:center; gap:6px; font-weight:700; font-size:15px; }
+        .verified-badge-img { width:16px; height:16px; cursor:pointer; }
+        .post-text { margin:8px 0; white-space:pre-wrap; font-size:15px; }
+
+        /* --- STYLE PROMO --- */
+        .promo-container {
+            margin-bottom: 8px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .promo-label {
+            font-size: 13px;
+            color: #71767b;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            opacity: 0; 
+            transition: opacity 1s ease-in-out;
+        }
+        .promo-label::after {
+            content: '↗'; 
+            font-size: 10px;
+        }
+
+        /* Tombol Hijau */
+        .cta-button {
+            background-color: #00BA7C;
+            color: white;
+            width: 100%;
+            padding: 10px 15px;
+            border-radius: 6px;
+            font-weight: 700;
+            font-size: 15px;
+            text-align: center;
+            cursor: pointer;
+            opacity: 0; 
+            transition: opacity 1s ease-in-out;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            text-decoration: none; /* Hilangkan garis bawah link */
+            border: none;
+        }
+        .cta-button:hover {
+            background-color: #00a06b;
+        }
+        
+        .fade-in-visible {
+            opacity: 1 !important;
+        }
+
+        /* --- Video Wrapper --- */
+        .custom-video-wrapper { 
+            position: relative; 
+            width: 100%; 
+            height: auto; 
+            overflow: hidden;
+            border-radius: 10px; 
+            background: #000; 
+            display: flex;       
+            justify-content: center;
+            align-items: center;
+            border: 1px solid #2f3336;
+        }
+
+        .custom-video-wrapper video { 
+            display: block; 
+            width: 100%; 
+            height: auto;        
+            max-height: 80vh;    
+            cursor: pointer; 
+            object-fit: contain; 
+        }
+        
+        .center-play-icon { 
+            position: absolute; 
+            top: 50%; 
+            left: 50%; 
+            transform: translate(-50%, -50%); 
+            font-size: 60px; 
+            color: rgba(255, 255, 255, 0.9); 
+            display: none;
+            pointer-events: none;
+            text-shadow: 0 0 10px rgba(0,0,0,0.5);
+            z-index: 5;
+        }
+        .center-play-icon:before { content: '▶'; }
+        .custom-video-wrapper.paused .center-play-icon { display: block; }
+
+        .video-controls {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background: linear-gradient(to top, rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0));
+            padding: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            opacity: 0;
+            transition: opacity 0.3s;
+            z-index: 6;
+        }
+        .custom-video-wrapper:hover .video-controls,
+        .custom-video-wrapper.playing .video-controls {
+            opacity: 1;
+        }
+        .play-pause-btn, .speed-btn {
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(255,255,255,0.3);
+            color: white;
+            font-size: 14px;
+            padding: 5px 12px;
+            cursor: pointer;
+            border-radius: 20px;
+            font-weight: bold;
+            backdrop-filter: blur(4px);
+        }
+        .play-pause-btn:before { content: '▶'; }
+        .custom-video-wrapper.playing .play-pause-btn:before { content: '❚❚'; }
+        .speed-btn { margin-left: auto; }
+
+        .media-carousel {
+            position: relative;
+            width: 100%;
+            max-height: 400px; 
+            overflow: hidden; 
+            border-radius: 10px;
+            display: flex;
+            background: #16181c;
+            aspect-ratio: 16/9; 
+            border: 1px solid #2f3336;
+        }
+        .carousel-track {
+            display: flex;
+            transition: transform 0.5s ease-in-out;
+            height: 100%;
+        }
+        .carousel-track img {
+            width: 100%;
+            height: 100%;
+            flex-shrink: 0;
+            object-fit: cover; 
+        }
+        .carousel-btn {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(0, 0, 0, 0.5);
+            color: white;
+            border: none;
+            padding: 10px;
+            cursor: pointer;
+            z-index: 10;
+            border-radius: 50%;
+            font-size: 18px;
+            line-height: 1;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .prev-btn { left: 10px; }
+        .next-btn { right: 10px; }
+        
+        .username-link {
+            color: inherit;
+            text-decoration: none;
+        }
+        .username-link:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-left">
+            <a href="chat.html" class="nav-icon-link">
+                <i class="fas fa-comment-dots"></i>
+                <span class="notification-dot"></span>
+            </a>
+            
+            <a href="foto.html" class="nav-icon-link">
+                <i class="fas fa-th-large"></i>
+            </a>
+        </div>
+
+        <img src="1763859548159.png" class="nav-logo">
+        <a href="index.html" class="home-btn">keluar</a>
+    </nav>
+    <main class="main-container" id="postsContainer">
+        
+        <article class="post" data-post-id="1">
+            <div class="post-header">
+                <img src="logo kelas.png" class="profile-pic">
+                <div>
+                    <div class="name-row">
+                        <a href="ig.html" class="username-link">eightcreative</a>
+                        <img src="verifikasi.png" class="verified-badge-img">
+                    </div>
+                    <div class="handle">@eightcreative</div>
+                </div>
+            </div>
+            <div class="post-text">udah pada coba belum? klik ikon tatak letak yang ada di pojok kiri atas dan mulai foto bersama teman kamu sekarang</div>
+            
+            <div class="promo-container">
+                <div id="promoLabel" class="promo-label">Di promosikan</div>
+                
+                <a href="foto.html" id="promoBtn" class="cta-button">
+                    <span>Coba sekarang</span>
+                    <span style="font-size: 18px;">❯</span>
+                </a>
+            </div>
+
+            <div class="custom-video-wrapper paused" id="videoWrapper1">
+                <video src="lv_0_20260121173432.mp4" playsinline preload="metadata" onclick="togglePlay(1)"></video>
+                <div class="center-play-icon"></div>
+                <div class="video-controls">
+                    <button class="play-pause-btn" onclick="togglePlay(1)"></button>
+                    <button class="speed-btn" onclick="toggleSpeed(1)">1x</button>
+                </div>
+            </div>
+        </article>
+        <article class="post" data-post-id="4">
+            <div class="post-header">
+                <img src="logo kelas.png" class="profile-pic">
+                <div>
+                    <div class="name-row">
+                        <a href="ig.html" class="username-link">eightcreative</a>
+                        <img src="verifikasi.png" class="verified-badge-img">
+                    </div>
+                    <div class="handle">@eightcreative</div>
+                </div>
+            </div>
+            <div class="post-text">our jersey transition!</div>
+            
+            <div class="custom-video-wrapper paused" id="videoWrapper4">
+                <video src="our jersey transition!.mp4" playsinline preload="metadata" onclick="togglePlay(4)"></video>
+                <div class="center-play-icon"></div>
+                <div class="video-controls">
+                    <button class="play-pause-btn" onclick="togglePlay(4)"></button>
+                    <button class="speed-btn" onclick="toggleSpeed(4)">1x</button>
+                </div>
+            </div>
+        </article>
+
+        <article class="post" data-post-id="2">
+            <div class="post-header">
+                <img src="logo kelas.png" class="profile-pic">
+                <div>
+                    <div class="name-row">
+                        <a href="ig.html" class="username-link">eightcreative</a>
+                        <img src="verifikasi.png" class="verified-badge-img">
+                    </div>
+                    <div class="handle">@eightcreative</div>
+                </div>
+            </div>
+            <div class="post-text">Tampilan baru media sosial kelas 8c</div>
+        </article>
+
+        <article class="post" data-post-id="3">
+            <div class="post-header">
+                <img src="logo kelas.png" class="profile-pic">
+                <div>
+                    <div class="name-row">
+                        <a href="ig.html" class="username-link">eightcreative</a>
+                        <img src="verifikasi.png" class="verified-badge-img">
+                    </div>
+                    <div class="handle">@eightcreative</div>
+                </div>
+            </div>
+            <div class="post-text">Alhamdulillah kegiatan angklung semester 1 selesai #Angklung</div>
+            <div class="media-carousel" id="carousel3" data-current-slide="0">
+                <div class="carousel-track">
+                    <img src="IMG-20251122-WA0008.jpg" alt="Slide 1">
+                    <img src="IMG-20251122-WA0007.jpg" alt="Slide 2">
+                    <img src="IMG-20251122-WA0006.jpg" alt="Slide 3">
+                </div>
+                <button class="carousel-btn prev-btn" onclick="moveSlide(3, -1)">◄</button>
+                <button class="carousel-btn next-btn" onclick="moveSlide(3, 1)">►</button>
+            </div>
+        </article>
+
+    </main>
+
+    <script>
+        window.onload = function() {
+            setTimeout(function() {
+                document.getElementById('promoLabel').classList.add('fade-in-visible');
+            }, 4000);
+
+            setTimeout(function() {
+                document.getElementById('promoBtn').classList.add('fade-in-visible');
+            }, 6000);
+        };
+
+        function togglePlay(postId) {
+            const wrapper = document.getElementById(`videoWrapper${postId}`);
+            const video = wrapper.querySelector('video');
+            if (video.paused || video.ended) {
+                video.play();
+                wrapper.classList.remove('paused');
+                wrapper.classList.add('playing');
+            } else {
+                video.pause();
+                wrapper.classList.remove('playing');
+                wrapper.classList.add('paused');
+            }
+        }
+
+        function toggleSpeed(postId) {
+            const wrapper = document.getElementById(`videoWrapper${postId}`);
+            const video = wrapper.querySelector('video');
+            const speedBtn = wrapper.querySelector('.speed-btn');
+            if (video.playbackRate === 1) {
+                video.playbackRate = 2;
+                speedBtn.textContent = '2x';
+            } else {
+                video.playbackRate = 1;
+                speedBtn.textContent = '1x';
+            }
+        }
+
+        document.querySelectorAll('.custom-video-wrapper video').forEach((video, index) => {
+            const wrapper = document.getElementById(`videoWrapper${index + 1}`);
+            video.onpause = () => { wrapper.classList.add('paused'); wrapper.classList.remove('playing'); };
+            video.onplay = () => { wrapper.classList.remove('paused'); wrapper.classList.add('playing'); };
+            video.onloadedmetadata = () => { wrapper.classList.add('paused'); };
+        });
+
+        function moveSlide(postId, direction) {
+            const carousel = document.getElementById(`carousel${postId}`);
+            const track = carousel.querySelector('.carousel-track');
+            const slides = track.querySelectorAll('img');
+            const totalSlides = slides.length;
+            let currentSlide = parseInt(carousel.getAttribute('data-current-slide'));
+            currentSlide += direction;
+            if (currentSlide < 0) currentSlide = 0;
+            else if (currentSlide >= totalSlides) currentSlide = totalSlides - 1;
+            const offset = currentSlide * 100;
+            track.style.transform = `translateX(-${offset}%)`;
+            carousel.setAttribute('data-current-slide', currentSlide);
+        }
+
+        document.querySelectorAll('.media-carousel').forEach(carousel => {
+            const track = carousel.querySelector('.carousel-track');
+            const slides = track.querySelectorAll('img');
+            track.style.width = `${slides.length * 100}%`;
+        });
+    </script>
+</body>
+</html>

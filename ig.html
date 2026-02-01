@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Eight Creative - Instagram Profile Replica</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* RESET & BASE STYLES */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background-color: #000;
+            color: #fff;
+            display: flex;
+            justify-content: center;
+        }
+
+        .mobile-container {
+            width: 100%;
+            max-width: 450px; /* Ukuran layar HP */
+            min-height: 100vh;
+            background-color: #000000;
+            border: 1px solid #262626;
+        }
+
+        /* HEADER NAV */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 16px;
+            position: sticky;
+            top: 0;
+            background: #000;
+            z-index: 10;
+        }
+
+        .header .left {
+            display: flex;
+            align-items: center;
+            gap: 25px;
+            font-size: 1.3rem;
+        }
+
+        .header .username {
+            font-weight: 700;
+            font-size: 1.1rem;
+            display: flex;
+            align-items: center;
+            gap: 5px; /* Jarak antara nama dan centang */
+        }
+
+        /* Style untuk Centang Biru */
+        .verified-badge {
+            width: 15px;
+            height: 15px;
+            object-fit: contain;
+        }
+
+        .header .right {
+            display: flex;
+            gap: 20px;
+            font-size: 1.2rem;
+        }
+
+        /* PROFILE SECTION */
+        .profile-info {
+            display: flex;
+            align-items: center;
+            padding: 10px 16px;
+            gap: 30px;
+        }
+
+        .profile-pic-container {
+            position: relative;
+        }
+
+        .profile-pic {
+            width: 86px;
+            height: 86px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 1px solid #363636;
+        }
+
+        /* Mengatur tata letak Delapan Cee di atas Stats */
+        .stats-wrapper {
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+            gap: 8px;
+        }
+
+        .display-name-top {
+            font-weight: 700;
+            font-size: 0.95rem;
+        }
+
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            text-align: center;
+        }
+
+        .stat-item strong {
+            display: block;
+            font-size: 1.1rem;
+        }
+
+        .stat-item span {
+            font-size: 0.85rem;
+            color: #efefef;
+        }
+
+        /* BIO SECTION */
+        .bio {
+            padding: 0 16px 15px;
+            font-size: 0.9rem;
+            line-height: 1.4;
+        }
+
+        .bio .category {
+            color: #a8a8a8;
+            margin-bottom: 4px;
+        }
+
+        .bio a {
+            color: #e0f1ff;
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        /* BUTTONS */
+        .action-btns {
+            display: flex;
+            padding: 0 16px 15px;
+            gap: 6px;
+        }
+
+        .btn {
+            background-color: #363636;
+            color: white;
+            border: none;
+            padding: 7px 0;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 0.85rem;
+            flex: 1;
+            cursor: pointer;
+        }
+
+        .btn-small {
+            flex: 0 0 40px;
+        }
+
+        /* HIGHLIGHTS */
+        .highlights {
+            display: flex;
+            padding: 0 16px 15px;
+            gap: 15px;
+            overflow-x: auto;
+        }
+
+        .highlight-item {
+            text-align: center;
+            min-width: 65px;
+        }
+
+        .highlight-circle {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: #262626;
+            margin-bottom: 5px;
+            border: 1px solid #363636;
+            overflow: hidden;
+        }
+
+        .highlight-circle img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .highlight-item span {
+            font-size: 0.75rem;
+        }
+
+        /* GRID TABS */
+        .grid-tabs {
+            display: flex;
+            border-top: 1px solid #262626;
+        }
+
+        .tab {
+            flex: 1;
+            text-align: center;
+            padding: 12px 0;
+            color: #a8a8a8;
+            font-size: 1.2rem;
+        }
+
+        .tab.active {
+            color: #fff;
+            border-bottom: 2px solid #fff;
+        }
+
+.post-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    column-gap: 2px;   /* garis ke samping (tetap normal) */
+    row-gap: 1px;      /* garis menyamping (diperkecil) */
+    background-color: #262626;
+}
+}
+
+.post-item {
+    position: relative;
+    aspect-ratio: 4 / 5;
+    background-color: #000;   /* samakan dengan background */
+}
+
+        .post-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        /* Pin Icon Overlay */
+        .fa-thumbtack {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            transform: rotate(45deg);
+            font-size: 0.8rem;
+            text-shadow: 0 0 5px rgba(0,0,0,0.5);
+        }
+
+        /* Hide Scrollbar */
+        .highlights::-webkit-scrollbar {
+            display: none;
+        }
+
+        /* --- MODAL STYLES --- */
+        .post-modal {
+            display: none; 
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.85);
+            z-index: 100;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .modal-content {
+            width: 90%; 
+            max-width: 380px; 
+            background-color: #000;
+            border-radius: 12px; 
+            overflow: hidden;
+            animation: zoomIn 0.2s ease-out;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+
+        @keyframes zoomIn {
+            from { transform: scale(0.9); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        .modal-header {
+            display: flex;
+            align-items: center;
+            padding: 12px;
+            gap: 10px;
+        }
+
+        .modal-header img {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+
+        .modal-header .modal-user {
+            font-weight: 700;
+            font-size: 0.9rem;
+            flex-grow: 1;
+        }
+
+        .modal-image {
+            width: 100%;
+            aspect-ratio: 4 / 5; /* Rasio 1080 x 1350 */
+            background-color: #1a1a1a;
+            overflow: hidden;
+        }
+
+        .modal-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        .modal-footer {
+            padding: 12px;
+            display: flex;
+            gap: 18px;
+            font-size: 1.3rem;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="mobile-container">
+        <header class="header">
+            <div class="left">
+<a href="feed.html" style="color: inherit; text-decoration: none;">
+    <i class="fa-solid fa-arrow-left"></i>
+</a>
+                <span class="username">
+                    eightt.ccreative
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/e/e4/Twitter_Verified_Badge.svg" class="verified-badge" alt="Verified">
+                </span>
+            </div>
+            <div class="right">
+                <i class="fa-regular fa-bell"></i>
+                <i class="fa-solid fa-ellipsis-vertical"></i>
+            </div>
+        </header>
+
+        <div class="profile-info">
+            <div class="profile-pic-container">
+                <img src="Logo kelas.png" class="profile-pic" alt="Profile">
+            </div>
+            <div class="stats-wrapper">
+                <div class="display-name-top">delapan cee</div>
+                <div class="stats">
+                    <div class="stat-item"><strong>12</strong><span>postingan</span></div>
+                    <div class="stat-item"><strong>64</strong><span>pengikut</span></div>
+                    <div class="stat-item"><strong>37</strong><span>mengikuti</span></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="bio">
+            <div class="category">Pendidikan</div>
+            <div>Part Of — <strong>@smpn4jember</strong></div>
+            <div>— Our teacher : Imro'atul Khasanah, S.Pd</div>
+            <div>— There are 33 students!</div>
+            <a href="#">eightcreative.netlify.app/</a>
+        </div>
+
+        <div class="action-btns">
+            <button class="btn">Mengikuti <i class="fa-solid fa-chevron-down" style="font-size: 10px;"></i></button>
+            <button class="btn">Kirim Pesan</button>
+            <button class="btn btn-small"><i class="fa-solid fa-user-plus"></i></button>
+        </div>
+
+        <div class="highlights">
+            <div class="highlight-item">
+                <div class="highlight-circle"><img src="Logo kelas.png" alt=""></div>
+                <span>memories✨</span>
+            </div>
+            <div class="highlight-item">
+                <div class="highlight-circle"><img src="Logo kelas.png" alt=""></div>
+                <span>aib</span>
+            </div>
+            <div class="highlight-item">
+                <div class="highlight-circle"><img src="Logo kelas.png" alt=""></div>
+                <span>random</span>
+            </div>
+        </div>
+
+        <div class="grid-tabs">
+            <div class="tab active"><i class="fa-solid fa-table-cells"></i></div>
+            <div class="tab"><i class="fa-solid fa-clapperboard"></i></div>
+            <div class="tab"><i class="fa-regular fa-id-badge"></i></div>
+        </div>
+
+        <div class="post-grid">
+            <div class="post-item" onclick="openModal(this)">
+                <i class="fa-solid fa-thumbtack"></i>
+                <img src="1.png" alt="Post">
+            </div>
+            <div class="post-item" onclick="openModal(this)">
+                <i class="fa-solid fa-thumbtack"></i>
+                <img src="2.png" alt="Post">
+            </div>
+            <div class="post-item" onclick="openModal(this)">
+                <i class="fa-solid fa-thumbtack"></i>
+                <img src="3.png" alt="Post">
+            </div>
+            <div class="post-item" onclick="openModal(this)"><img src="4.png" alt="Post"></div>
+            <div class="post-item" onclick="openModal(this)"><img src="5.png" alt="Post"></div>
+            <div class="post-item" onclick="openModal(this)"><img src="6.png" alt="Post"></div>
+            <div class="post-item" onclick="openModal(this)"><img src="7.png" alt="Post"></div>
+            <div class="post-item" onclick="openModal(this)"><img src="8.png" alt="Post"></div>
+            <div class="post-item" onclick="openModal(this)"><img src="9.png" alt="Post"></div>
+            <div class="post-item" onclick="openModal(this)"><img src="10.png" alt="Post"></div>
+            <div class="post-item" onclick="openModal(this)"><img src="11.png" alt="Post"></div>
+            <div class="post-item" onclick="openModal(this)"><img src="12.png" alt="Post"></div>
+        </div>
+    </div>
+
+    <div class="post-modal" id="postModal" onclick="closeModal()">
+        <div class="berbagai emoji " onclick="event.stopPropagation()">
+            <div class="modal-header">
+                <img src="Logo kelas.png" alt="Avatar">
+                <span class="modal-user">eightt.ccreative</span>
+                <i class="fa-solid fa-ellipsis-vertical"></i>
+            </div>
+            <div class="modal-image">
+                <img id="modalImg" src="" alt="">
+            </div>
+            <div class="modal-footer">
+                <i class="fa-regular fa-heart"></i>
+                <i class="fa-regular fa-comment"></i>
+                <i class="fa-regular fa-paper-plane"></i>
+                <div style="flex-grow: 1; text-align: right;"><i class="fa-regular fa-bookmark"></i></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function openModal(element) {
+            const modal = document.getElementById('postModal');
+            const modalImg = document.getElementById('modalImg');
+            const clickedImgSrc = element.getElementsByTagName('img')[0].src;
+            
+            modalImg.src = clickedImgSrc;
+            modal.style.display = 'flex';
+            document.body.style.overflow = 'hidden'; 
+        }
+
+        function closeModal() {
+            const modal = document.getElementById('postModal');
+            modal.style.display = 'none';
+            document.body.style.overflow = 'auto'; 
+        }
+    </script>
+
+</body>
+</html>

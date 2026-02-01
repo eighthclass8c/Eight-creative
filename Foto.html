@@ -1,0 +1,705 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Foto Tata Letak + Stiker - Kelas 8C</title>
+    <style>
+        /* --- CSS RESET & BASIC --- */
+        * { box-sizing: border-box; user-select: none; -webkit-user-select: none; }
+        body {
+            margin: 0; padding: 0;
+            background-color: #050505;
+            font-family: 'Segoe UI', sans-serif;
+            color: white;
+            height: 100vh; width: 100vw;
+            display: flex;
+            flex-direction: row;
+            overflow: hidden;
+        }
+
+        /* --- FITUR KHUSUS: PEMAKSA LANDSCAPE --- */
+        #landscape-warning {
+            display: none; 
+            position: fixed; top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: #000;
+            z-index: 99999; 
+            flex-direction: column; justify-content: center; align-items: center;
+            text-align: center; color: white; padding: 20px;
+        }
+        #landscape-warning .icon-rotate {
+            font-size: 50px; animation: rotatePhone 2s infinite; margin-bottom: 20px;
+        }
+        @keyframes rotatePhone {
+            0% { transform: rotate(0deg); }
+            50% { transform: rotate(-90deg); }
+            100% { transform: rotate(0deg); }
+        }
+
+        @media screen and (orientation: portrait) {
+            #landscape-warning { display: flex; }
+            #cameraContainer, .control-panel, #resultModal { display: none !important; }
+        }
+
+        /* --- 1. AREA KAMERA (KIRI) --- */
+        #cameraContainer {
+            position: relative;
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: #000;
+            height: 100%;
+        }
+
+        #cameraPage {
+            position: relative;
+            height: 90%;
+            aspect-ratio: 16 / 9;
+            background-color: #222;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 0 20px rgba(255, 255, 255, 0.1);
+            border: 1px solid #333;
+            touch-action: none; /* Mencegah scroll browser saat drag stiker */
+        }
+
+        video { width: 100%; height: 100%; object-fit: cover; transform: scaleX(-1); }
+
+        /* LAYER STIKER DI ATAS VIDEO */
+        #stickerLayer {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            z-index: 10; overflow: hidden; pointer-events: auto;
+        }
+        
+        .sticker-item {
+            position: absolute;
+            cursor: grab;
+            font-size: 60px;
+            line-height: 1;
+            transform-origin: center center;
+            filter: drop-shadow(0px 0px 5px rgba(0,0,0,0.5));
+            touch-action: none;
+            transition: transform 0.1s cubic-bezier(0,0,0.2,1); /* Smooth transform */
+        }
+        .sticker-item:active { cursor: grabbing; }
+
+        /* --- 2. PANEL KONTROL (KANAN) --- */
+        .control-panel {
+            width: 140px;
+            height: 100%;
+            background-color: #111;
+            border-left: 1px solid #333;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            z-index: 50;
+            padding: 20px 0;
+            gap: 20px;
+        }
+
+        /* Menu Button */
+        .menu-btn {
+            background: none; border: none; cursor: pointer;
+            padding: 10px; position: absolute; top: 20px; z-index: 100; outline: none;
+        }
+        .menu-icon rect { fill: white; transition: fill 0.3s; }
+        .menu-btn:hover .menu-icon rect { fill: #28a745; }
+
+        /* Drawer Settings */
+        .settings-drawer {
+            position: absolute; right: 150px; top: 20px;
+            background: rgba(20, 20, 20, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 15px; padding: 0 15px; width: 260px;
+            border: 1px solid #444;
+            max-height: 0; opacity: 0; overflow: hidden;
+            transition: max-height 0.4s ease, opacity 0.3s ease;
+            display: flex; flex-direction: column; gap: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            z-index: 60;
+        }
+        .settings-drawer.open { max-height: 200px; opacity: 1; padding: 15px; }
+
+        .mode-selector { display: flex; background: #444; border-radius: 20px; padding: 3px; }
+        .mode-btn { flex: 1; background: transparent; border: none; color: #aaa; padding: 8px 0; border-radius: 17px; cursor: pointer; font-size: 0.8rem; font-weight: bold; transition: all 0.2s; }
+        .mode-btn.active { background: white; color: black; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
+
+        .name-input { width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #555; background: #222; color: white; text-align: center; font-size: 0.9rem; outline: none; }
+
+        /* Shutter Button */
+        .shutter-btn {
+            width: 70px; height: 70px;
+            background-color: white; border-radius: 50%;
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            cursor: pointer; transition: all 0.2s ease;
+            box-shadow: 0 0 15px rgba(255, 255, 255, 0.3);
+            outline: none; -webkit-tap-highlight-color: transparent;
+        }
+        .shutter-btn:active { transform: scale(0.9); background-color: #e0e0e0; }
+        .shutter-btn.disabled { background-color: #555; border-color: #333; cursor: not-allowed; }
+
+        /* Control Items (BG & Sticker) */
+        .control-item {
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            cursor: pointer; position: relative;
+        }
+        .control-label {
+            font-size: 0.7rem; color: #aaa; text-align: center; margin-top: 5px;
+            border-bottom: 1px dashed transparent; transition: all 0.3s;
+        }
+        .control-item:hover .control-label { color: #fff; border-bottom-color: #fff; }
+        .control-icon { font-size: 1.5rem; transition: transform 0.2s; }
+        .control-item:active .control-icon { transform: scale(0.9); }
+
+        /* Sticker Drawer */
+        .sticker-drawer {
+            position: absolute;
+            right: 150px; bottom: 20px; /* Muncul dari bawah sebelah kiri panel */
+            width: 300px; height: 0;
+            background: rgba(20, 20, 20, 0.98);
+            border: 1px solid #444; border-radius: 15px;
+            backdrop-filter: blur(10px);
+            opacity: 0; overflow: hidden;
+            transition: all 0.3s cubic-bezier(0.25, 1, 0.5, 1);
+            display: flex; flex-direction: column;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.8);
+            z-index: 60;
+        }
+        .sticker-drawer.open { height: 350px; opacity: 1; }
+        
+        .sticker-header {
+            padding: 10px; background: #333; text-align: center; font-size: 0.9rem; font-weight: bold;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .sticker-close { background: none; border: none; color: white; cursor: pointer; font-size: 1.2rem; }
+        
+        .sticker-grid {
+            flex: 1; overflow-y: auto; padding: 10px;
+            display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px;
+        }
+        .sticker-option {
+            font-size: 1.8rem; cursor: pointer; text-align: center;
+            transition: transform 0.1s; user-select: none;
+        }
+        .sticker-option:active { transform: scale(1.4); }
+
+        /* Scrollbar custom */
+        .sticker-grid::-webkit-scrollbar { width: 6px; }
+        .sticker-grid::-webkit-scrollbar-thumb { background: #555; border-radius: 3px; }
+
+        /* --- OTHERS --- */
+        #countdownOverlay { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 5rem; font-weight: bold; color: white; text-shadow: 0 0 10px rgba(0,0,0,0.8); display: none; z-index: 100; }
+        .flash { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: white; opacity: 0; pointer-events: none; transition: opacity 0.1s; z-index: 90; }
+
+        /* Modal Result */
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.95); z-index: 2000; display: none; justify-content: center; align-items: center; backdrop-filter: blur(5px); }
+        .modal-content { background: #1a1a1a; border: 1px solid #333; padding: 20px; border-radius: 15px; width: auto; max-width: 90%; text-align: center; animation: fadeIn 0.5s ease-out; display: flex; flex-direction: column; align-items: center; }
+        #resultImage { max-width: 100%; height: 70vh; object-fit: contain; border-radius: 4px; border: 2px solid white; margin-bottom: 15px; }
+        .btn-group { display: flex; gap: 15px; justify-content: center; }
+        .btn-download, .btn-retry { padding: 10px 25px; border-radius: 20px; font-weight: bold; font-size: 0.9rem; transition: transform 0.2s; cursor: pointer; text-decoration: none; border: none; }
+        .btn-download { background: #007bff; color: white; }
+        .btn-retry { background: #dc3545; color: white; }
+        .btn-download:hover, .btn-retry:hover { transform: scale(1.05); }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body>
+
+    <div id="landscape-warning">
+        <div class="icon-rotate">📱</div>
+        <h2>Harap Putar Layar Anda</h2>
+        <p>Fitur Foto Tata Letak hanya berfungsi dalam mode Landscape.</p>
+    </div>
+
+    <div id="cameraContainer">
+        <div id="cameraPage">
+            <video id="videoFeed" autoplay playsinline></video>
+            <div id="stickerLayer"></div> 
+            <div id="countdownOverlay"></div>
+            <div id="flashEffect" class="flash"></div>
+        </div>
+    </div>
+
+    <div class="control-panel" id="controlPanel">
+        
+        <button id="menuBtn" class="menu-btn">
+            <svg class="menu-icon" width="30" height="30" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <rect y="4" width="24" height="2" rx="1"/>
+                <rect y="11" width="24" height="2" rx="1"/>
+                <rect y="18" width="24" height="2" rx="1"/>
+            </svg>
+        </button>
+
+        <div id="settingsDrawer" class="settings-drawer">
+            <div class="mode-selector">
+                <button class="mode-btn active" id="btnSingle">Foto Tunggal</button>
+                <button class="mode-btn" id="btnGroup">Foto Bersama</button>
+            </div>
+            <input type="text" id="nameInput" class="name-input" placeholder="Masukkan nama...">
+        </div>
+
+        <button id="shutterBtn" class="shutter-btn"></button>
+
+        <div class="control-item" onclick="document.getElementById('bgInput').click()">
+            <div class="control-icon">🖼️</div>
+            <div class="control-label" id="bgLabelText">Ganti<br>Background</div>
+            <input type="file" id="bgInput" accept="image/*" style="display:none;">
+        </div>
+
+        <div class="control-item" id="stickerBtn">
+            <div class="control-icon">😊</div>
+            <div class="control-label">Tambah<br>Stiker</div>
+        </div>
+
+        <div id="stickerDrawer" class="sticker-drawer">
+            <div class="sticker-header">
+                <span>Pilih Stiker (Maks 8)</span>
+                <button class="sticker-close" id="closeStickerDrawer">×</button>
+            </div>
+            <div class="sticker-grid" id="stickerGrid">
+                </div>
+        </div>
+    </div>
+
+    <div id="resultModal" class="modal-overlay">
+        <div class="modal-content">
+            <h2>Hasil Foto</h2>
+            <img id="resultImage" src="" alt="Hasil Foto">
+            <div class="btn-group">
+                <a id="downloadLink" class="btn-download" download="foto-tataletak-8c.png">Simpan</a>
+                <button id="retryBtn" class="btn-retry">Ulangi</button>
+            </div>
+        </div>
+    </div>
+
+    <canvas id="canvasHidden" style="display:none;"></canvas>
+
+    <script>
+        // --- VARIABLES ---
+        const videoElement = document.getElementById('videoFeed');
+        const canvas = document.getElementById('canvasHidden');
+        const ctx = canvas.getContext('2d');
+        const shutterBtn = document.getElementById('shutterBtn');
+        const countdownEl = document.getElementById('countdownOverlay');
+        const flashEl = document.getElementById('flashEffect');
+        
+        // Modal Result
+        const resultModal = document.getElementById('resultModal');
+        const resultImg = document.getElementById('resultImage');
+        const downloadLink = document.getElementById('downloadLink');
+
+        // UI Controls
+        const menuBtn = document.getElementById('menuBtn');
+        const settingsDrawer = document.getElementById('settingsDrawer');
+        const btnSingle = document.getElementById('btnSingle');
+        const btnGroup = document.getElementById('btnGroup');
+        const nameInput = document.getElementById('nameInput');
+        
+        // Background Controls
+        const bgInput = document.getElementById('bgInput');
+        const bgLabelText = document.getElementById('bgLabelText');
+
+        // Sticker Controls
+        const stickerBtn = document.getElementById('stickerBtn');
+        const stickerDrawer = document.getElementById('stickerDrawer');
+        const closeStickerDrawer = document.getElementById('closeStickerDrawer');
+        const stickerGrid = document.getElementById('stickerGrid');
+        const stickerLayer = document.getElementById('stickerLayer');
+
+        let photos = [];
+        let currentMode = 'single';
+        let customBgImage = null;
+
+        // Emoji List
+        const emojis = "🫠🥳🤩😍🥰😘😆😗😚🫣🤭😮‍💨🤬🧐😮😰😖😫😵‍💫😷💩👿👻☠️💢❤️🩷💘💝💖💗💓💞💕🤍💤💯🔥💥⚡✨🌟⭐🙀💐🌹🥀🌺🌷🪷🌸💮🏵️🪻🌻🌼🍂🍁🍄🌾🌱🌿🍃☘️🍀🪴🌵🌴🌈🌀🌝🌚🌞🌜🌛🌙⭐🌟☀️✨🙈🙊🐵🙉🦁🐯🐱🐶🐺🦝🐮🐷🐽🐊🦬🦦🐦🐦‍🔥🍓🍒🍎🍅🌶️🍉🍑🍊🥕🥭🍍🍌🌽🍋🍋‍🟩🍈🍐🫛🥬🍇🍠🫜🦞🎊🎉🎀🕶️🗯️💭💬🗨️❕❗‼️⁉️❔";
+        const emojiList = [...new Intl.Segmenter().segment(emojis)].map(x => x.segment);
+
+        // --- 1. START CAMERA ---
+        window.addEventListener('load', () => {
+            startCamera();
+            loadEmojis();
+        });
+
+        async function startCamera() {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ 
+                    video: { facingMode: "user", width: { ideal: 1280 }, height: { ideal: 720 } }, 
+                    audio: false 
+                });
+                videoElement.srcObject = stream;
+            } catch (err) {
+                console.error("Error akses kamera:", err);
+            }
+        }
+
+        function loadEmojis() {
+            emojiList.forEach(emoji => {
+                const span = document.createElement('span');
+                span.className = 'sticker-option';
+                span.innerText = emoji;
+                span.onclick = () => addSticker(emoji);
+                stickerGrid.appendChild(span);
+            });
+        }
+
+        // --- 2. LOGIKA STIKER (CORE) ---
+        let activeStickers = [];
+        const MAX_STICKERS = 8;
+
+        function addSticker(emojiChar) {
+            if (activeStickers.length >= MAX_STICKERS) {
+                alert("Maksimal 8 stiker!");
+                return;
+            }
+
+            const sticker = document.createElement('div');
+            sticker.className = 'sticker-item';
+            sticker.innerText = emojiChar;
+            
+            // Posisi awal acak di tengah
+            const startX = (stickerLayer.clientWidth / 2) + (Math.random() * 40 - 20);
+            const startY = (stickerLayer.clientHeight / 2) + (Math.random() * 40 - 20);
+            
+            // State internal stiker
+            sticker.dataset.x = startX;
+            sticker.dataset.y = startY;
+            sticker.dataset.scale = 1;
+            sticker.dataset.rotation = 0;
+
+            updateStickerTransform(sticker);
+            
+            // Tambahkan event listeners
+            addInteraction(sticker);
+            
+            // Dobel klik hapus
+            sticker.addEventListener('dblclick', () => {
+                sticker.remove();
+                activeStickers = activeStickers.filter(s => s !== sticker);
+            });
+
+            stickerLayer.appendChild(sticker);
+            activeStickers.push(sticker);
+        }
+
+        function updateStickerTransform(el) {
+            const x = parseFloat(el.dataset.x);
+            const y = parseFloat(el.dataset.y);
+            const r = parseFloat(el.dataset.rotation);
+            const s = parseFloat(el.dataset.scale);
+            // Centering dengan translate -50% -50%
+            el.style.left = x + 'px';
+            el.style.top = y + 'px';
+            el.style.transform = `translate(-50%, -50%) rotate(${r}deg) scale(${s})`;
+        }
+
+        // Logic Drag & Pinch
+        function addInteraction(el) {
+            let isDragging = false;
+            let startX, startY;
+            let initialLeft, initialTop;
+            
+            // Mouse/Touch Down
+            const onDown = (e) => {
+                if (e.type === 'touchstart' && e.touches.length === 2) return; // Biarkan logika pinch
+
+                isDragging = true;
+                const clientX = e.type.includes('touch') ? e.touches[0].clientX : e.clientX;
+                const clientY = e.type.includes('touch') ? e.touches[0].clientY : e.clientY;
+                
+                startX = clientX;
+                startY = clientY;
+                initialLeft = parseFloat(el.dataset.x);
+                initialTop = parseFloat(el.dataset.y);
+                
+                document.addEventListener(e.type.includes('touch') ? 'touchmove' : 'mousemove', onMove, {passive: false});
+                document.addEventListener(e.type.includes('touch') ? 'touchend' : 'mouseup', onUp);
+            };
+
+            const onMove = (e) => {
+                if (!isDragging) return;
+                e.preventDefault(); // Stop scroll
+
+                const clientX = e.type.includes('touch') ? e.touches[0].clientX : e.clientX;
+                const clientY = e.type.includes('touch') ? e.touches[0].clientY : e.clientY;
+
+                const dx = clientX - startX;
+                const dy = clientY - startY;
+
+                el.dataset.x = initialLeft + dx;
+                el.dataset.y = initialTop + dy;
+                updateStickerTransform(el);
+            };
+
+            const onUp = () => {
+                isDragging = false;
+                document.removeEventListener('mousemove', onMove);
+                document.removeEventListener('touchmove', onMove);
+                document.removeEventListener('mouseup', onUp);
+                document.removeEventListener('touchend', onUp);
+            };
+
+            // Wheel untuk Scale/Rotate di Desktop
+            el.addEventListener('wheel', (e) => {
+                e.preventDefault();
+                let s = parseFloat(el.dataset.scale);
+                let r = parseFloat(el.dataset.rotation);
+                
+                if (e.ctrlKey) {
+                    // Rotate
+                    r += e.deltaY > 0 ? 10 : -10;
+                    el.dataset.rotation = r;
+                } else {
+                    // Scale
+                    s += e.deltaY * -0.001;
+                    s = Math.max(0.5, Math.min(s, 5)); // Limit scale
+                    el.dataset.scale = s;
+                }
+                updateStickerTransform(el);
+            });
+
+            // Touch Pinch/Rotate Logic
+            let initialDist = 0;
+            let initialAngle = 0;
+            let initialScale = 1;
+            let initialRot = 0;
+
+            const getDist = (t1, t2) =>
+            Math.hypot(t1.clientX - t2.clientX, t1.clientY - t2.clientY);
+            const getAngle = (t1, t2) => Math.atan2(t2.clientY - t1.clientY, t2.clientX - t1.clientX) * 180 / Math.PI;
+
+            stickerLayer.addEventListener('touchstart', (e) => {
+                if (e.touches.length === 2) {
+                    // Cek apakah salah satu jari menyentuh elemen ini
+                    if (e.touches[0].target === el || e.touches[1].target === el) {
+                        e.preventDefault();
+                        initialDist = getDist(e.touches[0], e.touches[1]);
+                        initialAngle = getAngle(e.touches[0], e.touches[1]);
+                        initialScale = parseFloat(el.dataset.scale);
+                        initialRot = parseFloat(el.dataset.rotation);
+                        
+                        const onPinchMove = (em) => {
+                            if (em.touches.length === 2) {
+                                em.preventDefault();
+                                const currentDist = getDist(em.touches[0], em.touches[1]);
+                                const currentAngle = getAngle(em.touches[0], em.touches[1]);
+                                
+                                const scaleFactor = currentDist / initialDist;
+                                el.dataset.scale = Math.max(0.5, Math.min(initialScale * scaleFactor, 5));
+                                el.dataset.rotation = initialRot + (currentAngle - initialAngle);
+                                updateStickerTransform(el);
+                            }
+                        };
+                        
+                        const onPinchEnd = () => {
+                            document.removeEventListener('touchmove', onPinchMove);
+                            document.removeEventListener('touchend', onPinchEnd);
+                        };
+                        
+                        document.addEventListener('touchmove', onPinchMove, {passive: false});
+                        document.addEventListener('touchend', onPinchEnd);
+                    }
+                }
+            }, {passive: false});
+
+            el.addEventListener('mousedown', onDown);
+            el.addEventListener('touchstart', onDown, {passive: false});
+        }
+
+        // --- 3. UI LOGIC ---
+        menuBtn.addEventListener('click', (e) => { e.stopPropagation(); settingsDrawer.classList.toggle('open'); });
+        document.addEventListener('click', (e) => {
+            if (!settingsDrawer.contains(e.target) && !menuBtn.contains(e.target)) settingsDrawer.classList.remove('open');
+            if (!stickerDrawer.contains(e.target) && !stickerBtn.contains(e.target)) stickerDrawer.classList.remove('open');
+        });
+
+        // Toggle Sticker Drawer
+        stickerBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            stickerDrawer.classList.toggle('open');
+        });
+        closeStickerDrawer.addEventListener('click', () => stickerDrawer.classList.remove('open'));
+
+        bgInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    const img = new Image();
+                    img.onload = () => {
+                        customBgImage = img;
+                        bgLabelText.innerHTML = "Background<br>Terpasang ✓";
+                        // bgLabelText.classList.add('selected');
+                    }
+                    img.src = event.target.result;
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        btnSingle.addEventListener('click', () => {
+            currentMode = 'single'; btnSingle.classList.add('active'); btnGroup.classList.remove('active');
+            nameInput.placeholder = "Masukkan nama kamu...";
+        });
+        btnGroup.addEventListener('click', () => {
+            currentMode = 'group'; btnGroup.classList.add('active'); btnSingle.classList.remove('active');
+            nameInput.placeholder = "Nama 1, Nama 2...";
+        });
+
+        // --- 4. SHUTTER & PROCESS ---
+        shutterBtn.addEventListener('click', async () => {
+            settingsDrawer.classList.remove('open');
+            stickerDrawer.classList.remove('open');
+            
+            shutterBtn.disabled = true; shutterBtn.classList.add('disabled');
+            menuBtn.style.display = 'none';
+            photos = [];
+
+            for (let i = 1; i <= 3; i++) {
+                await runCountdown(3);
+                capturePhotoWithStickers(); // Ganti fungsi capture
+                flashAnimation();
+                await wait(800);
+            }
+            processFinalImage();
+        });
+
+        function runCountdown(seconds) {
+            return new Promise(resolve => {
+                let counter = seconds;
+                countdownEl.style.display = 'block'; countdownEl.innerText = counter;
+                const timer = setInterval(() => {
+                    counter--;
+                    if (counter > 0) countdownEl.innerText = counter;
+                    else { clearInterval(timer); countdownEl.style.display = 'none'; resolve(); }
+                }, 1000);
+            });
+        }
+        function wait(ms) { return new Promise(resolve => setTimeout(resolve, ms)); }
+        function flashAnimation() { flashEl.style.opacity = '1'; setTimeout(() => { flashEl.style.opacity = '0'; }, 150); }
+
+        function capturePhotoWithStickers() {
+            // Set canvas size sesuai video
+            canvas.width = videoElement.videoWidth;
+            canvas.height = videoElement.videoHeight;
+            
+            // 1. Gambar Video (Mirrored)
+            ctx.save();
+            ctx.scale(-1, 1);
+            ctx.drawImage(videoElement, -canvas.width, 0, canvas.width, canvas.height);
+            ctx.restore();
+
+            // 2. Gambar Stiker di atasnya
+            // Kita perlu memetakan koordinat layar (DOM) ke koordinat Canvas (Video)
+            const videoRect = videoElement.getBoundingClientRect();
+            const scaleX = canvas.width / videoRect.width;
+            const scaleY = canvas.height / videoRect.height;
+
+            activeStickers.forEach(el => {
+                const domX = parseFloat(el.dataset.x);
+                const domY = parseFloat(el.dataset.y);
+                const domScale = parseFloat(el.dataset.scale);
+                const domRot = parseFloat(el.dataset.rotation);
+                const text = el.innerText;
+
+                // Konversi posisi
+                // Karena video di-mirror secara visual via CSS (scaleX(-1)),
+                // Posisi X di layar kiri (user view) sebenarnya adalah X kanan di canvas yang sudah di-flip.
+                // Namun, karena kita sudah menggambar video dengan ctx.scale(-1,1), koordinat canvas 0,0 ada di kanan atas (secara logika mirror).
+                // Cara termudah: Gambar stiker secara normal di atas canvas yang sudah berisi gambar video mirror.
+                // Tapi koordinat X harus disesuaikan.
+                
+                // Hitung koordinat relatif terhadap canvas
+                // Jika user melihat stiker di kiri, di canvas juga harus di kiri.
+                let canvasX = domX * scaleX;
+                let canvasY = domY * scaleY;
+
+                ctx.save();
+                ctx.translate(canvasX, canvasY);
+                ctx.rotate(domRot * Math.PI / 180);
+                ctx.scale(domScale, domScale);
+                
+                // Style Font Emoji
+                ctx.font = "60px 'Segoe UI Emoji', 'Segoe UI Symbol'"; // Base size css
+                ctx.textAlign = "center";
+                ctx.textBaseline = "middle";
+                ctx.fillText(text, 0, 0); // Gambar di 0,0 relatif terhadap translate
+                
+                ctx.restore();
+            });
+
+            photos.push(canvas.toDataURL('image/png'));
+        }
+
+        // --- 5. STITCHING (Sama seperti sebelumnya) ---
+        function processFinalImage() {
+            if (photos.length === 0) return;
+
+            const w = videoElement.videoWidth;
+            const h = videoElement.videoHeight;
+            const sideMargin = 40; const photoGap = 40; const topMargin = 40; const bottomArea = 200;
+            const finalWidth = w + (sideMargin * 2);
+            const finalHeight = topMargin + (h * 3) + (photoGap * 2) + bottomArea;
+
+            canvas.width = finalWidth; canvas.height = finalHeight;
+
+            if (customBgImage) ctx.drawImage(customBgImage, 0, 0, finalWidth, finalHeight);
+            else { ctx.fillStyle = "#ffffff"; ctx.fillRect(0, 0, finalWidth, finalHeight); }
+
+            const img1 = new Image(); img1.src = photos[0];
+            const img2 = new Image(); img2.src = photos[1];
+            const img3 = new Image(); img3.src = photos[2];
+
+            img1.onload = () => {
+                ctx.drawImage(img1, sideMargin, topMargin);
+                img2.onload = () => {
+                    const y2 = topMargin + h + photoGap;
+                    ctx.drawImage(img2, sideMargin, y2);
+                    img3.onload = () => {
+                        const y3 = y2 + h + photoGap;
+                        ctx.drawImage(img3, sideMargin, y3);
+
+                        // Draw Footer Text
+                        const footerCenterY = finalHeight - (bottomArea / 2);
+                        let rawName = nameInput.value.trim();
+                        let finalString = "";
+                        if (currentMode === 'single') {
+                            if (!rawName) rawName = "Me";
+                            finalString = "Hi I'm " + rawName;
+                        } else {
+                            if (!rawName) rawName = "Us";
+                            finalString = "Group photo " + rawName;
+                        }
+
+                        ctx.font = "bold 50px 'Brush Script MT', 'Segoe UI', cursive";
+                        ctx.textAlign = "center"; ctx.textBaseline = "middle";
+                        ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 5;
+                        ctx.strokeText(finalString, finalWidth / 2, footerCenterY);
+                        ctx.fillStyle = "#000000";
+                        ctx.fillText(finalString, finalWidth / 2, footerCenterY);
+
+                        showResult();
+                    }
+                }
+            }
+        }
+
+        function showResult() {
+            const finalImage = canvas.toDataURL('image/png');
+            resultImg.src = finalImage;
+            downloadLink.href = finalImage;
+            resultModal.style.display = 'flex';
+        }
+
+        document.getElementById('retryBtn').addEventListener('click', () => {
+            resultModal.style.display = 'none';
+            shutterBtn.disabled = false; shutterBtn.classList.remove('disabled');
+            menuBtn.style.display = 'block';
+        });
+    </script>
+</body>
+</html>

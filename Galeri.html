@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Website Kelas 8C</title>
+    <style>
+        /* --- RESET & BASIC STYLE --- */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(-45deg, #000000, #8A2BE2, #4169E1, #9400D3, #FF00FF, #FFFFFF);
+            background-size: 400% 400%;
+            animation: gradientBG 15s ease infinite;
+            width: 100%;
+            min-height: 100vh; 
+            color: white;
+            overflow-x: hidden;
+        }
+
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* --- LOADING ANIMATION STYLES --- */
+        .loader-wrapper {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #050505;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            transition: opacity 0.5s ease-out, visibility 0.5s;
+        }
+
+        .loader-wrapper.hidden {
+            opacity: 0;
+            visibility: hidden;
+        }
+
+        .loading-wave {
+            display: flex;
+            justify-content: center;
+            align-items: flex-end;
+            height: 100px;
+        }
+
+        .loading-bar {
+            width: 20px;
+            height: 10px;
+            margin: 0 5px;
+            background-color: #8A2BE2;
+            border-radius: 5px;
+            animation: loading-wave-anim 1s ease-in-out infinite;
+        }
+
+        .loading-bar:nth-child(1) { background-color: #4169E1; animation-delay: 0.1s; }
+        .loading-bar:nth-child(2) { background-color: #8A2BE2; animation-delay: 0.2s; }
+        .loading-bar:nth-child(3) { background-color: #FF00FF; animation-delay: 0.3s; }
+        .loading-bar:nth-child(4) { background-color: #9400D3; animation-delay: 0.4s; }
+
+        @keyframes loading-wave-anim {
+            0% { height: 10px; }
+            50% { height: 80px; }
+            100% { height: 10px; }
+        }
+
+        /* --- NAVBAR --- */
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 5%;
+            background: rgba(255, 255, 255, 0.1); 
+            backdrop-filter: blur(10px); 
+            -webkit-backdrop-filter: blur(10px); 
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2); 
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .logo-container {
+            width: 35px; 
+            height: 35px;
+            background-color: #fff;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            box-shadow: 0 0 10px rgba(0,0,0,0.2);
+        }
+
+        .logo-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .nav-links {
+            display: flex;
+            align-items: center;
+        }
+
+        .nav-links a {
+            color: white;
+            text-decoration: none;
+            margin-left: 20px; 
+            font-weight: 500;
+            font-size: 0.95rem; 
+            text-shadow: 0px 0px 4px rgba(0,0,0,0.8); 
+            transition: 0.3s;
+            position: relative;
+        }
+
+        .nav-links a::after {
+            content: '';
+            display: block;
+            width: 0;
+            height: 2px;
+            background: #fff;
+            transition: width .3s;
+            margin-top: 2px;
+        }
+
+        .nav-links a:hover::after {
+            width: 100%;
+        }
+
+        /* --- GALERI UTAMA --- */
+        .gallery-section {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            padding-top: 60px;
+            width: 100%;
+        }
+
+        .gallery-container {
+            display: flex;
+            gap: 10px;
+            width: 95%;
+            height: 600px;
+            padding: 40px 10px;
+            overflow-x: auto; 
+            overflow-y: hidden;
+            scroll-behavior: smooth;
+            align-items: center;
+        }
+
+        .gallery-container::-webkit-scrollbar {
+            height: 5px;
+        }
+        .gallery-container::-webkit-scrollbar-thumb {
+            background: rgba(255,255,255,0.4);
+            border-radius: 10px;
+        }
+
+        .card {
+            flex: 1;
+            min-width: 70px;
+            height: 100%;
+            border-radius: 15px;
+            background-size: cover;
+            background-position: center;
+            cursor: pointer;
+            transition: all 0.5s cubic-bezier(0.25, 0.4, 0.45, 1.4);
+            position: relative;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+        }
+
+        .card:nth-child(odd) { transform: translateY(-15px); }
+        .card:nth-child(even) { transform: translateY(15px); }
+
+        .card h3 {
+            position: absolute;
+            bottom: 10px;
+            left: 10px;
+            font-size: 0;
+            opacity: 0;
+            transition: 0.3s;
+            background: rgba(0,0,0,0.6);
+            padding: 4px 8px;
+            border-radius: 5px;
+            white-space: nowrap;
+            overflow: hidden;
+            max-width: 90%;
+            text-overflow: ellipsis;
+        }
+
+        .gallery-container:hover .card:not(:hover) {
+            filter: grayscale(100%);
+            opacity: 0.5;
+        }
+
+        .card:hover {
+            flex: 8;
+            min-width: 250px;
+            filter: grayscale(0%);
+            opacity: 1;
+            transform: translateY(0) scale(1.02);
+            z-index: 10;
+        }
+        .card:hover h3 { font-size: 0.8rem; opacity: 1; }
+
+        @media (max-height: 500px) and (orientation: landscape) {
+            nav { padding: 5px 5%; }
+            .gallery-section { padding-top: 40px; align-items: flex-start; }
+            .gallery-container { height: 280px; padding: 20px 0; }
+            .card { min-width: 45px; border-radius: 10px; }
+            .card:nth-child(odd) { transform: translateY(-5px); }
+            .card:nth-child(even) { transform: translateY(5px); }
+            .card:hover { min-width: 140px; transform: translateY(0) scale(1); }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="loader-wrapper">
+        <div class="loading-wave">
+            <div class="loading-bar"></div>
+            <div class="loading-bar"></div>
+            <div class="loading-bar"></div>
+            <div class="loading-bar"></div>
+        </div>
+    </div>
+
+    <nav>
+        <div class="logo-container">
+            <img src="logo kelas.png" alt="Logo">
+        </div>
+        <div class="nav-links">
+            <a href="index.html" class="active">Home</a>
+            <a href="info.html">Info</a>
+            <a href="aib.html">Aib</a>
+            <a href="#">Galeri</a>
+            <a href="feed.html">Feed</a>
+        </div>
+    </nav>
+
+    <section class="gallery-section">
+        <div class="gallery-container">
+            <div class="card" style="background-image: url('IMG-20251108-WA0039.jpg');"><h3>08 Nov 1955</h3></div>
+            <div class="card" style="background-image: url('IMG-20251105-WA0019.jpg');"><h3>05 Nov 2025</h3></div>
+            <div class="card" style="background-image: url('IMG-20251105-WA0018.jpg');"><h3>05 Nov 2025</h3></div>
+            <div class="card" style="background-image: url('IMG-20251104-WA0007.jpg');"><h3>04 Nov 2025</h3></div>
+            <div class="card" style="background-image: url('IMG-20251104-WA0004.jpg');"><h3>04 Nov 2025</h3></div>
+            <div class="card" style="background-image: url('IMG-20251004-WA0034.jpg');"><h3>04 Okt 2025</h3></div>
+            <div class="card" style="background-image: url('IMG-20251004-WA0030.jpg');"><h3>04 Okt 2025</h3></div>
+            <div class="card" style="background-image: url('IMG-20251004-WA0027.jpg');"><h3>04 Okt 2025</h3></div>
+            <div class="card" style="background-image: url('IMG-20251001-WA0025.jpg');"><h3>01 Okt 2025</h3></div>
+            <div class="card" style="background-image: url('IMG-20251001-WA0024.jpg');"><h3>01 Okt 2025</h3></div>
+            <div class="card" style="background-image: url('IMG-20251001-WA0008.jpg');"><h3>01 Okt 2025</h3></div>
+            <div class="card" style="background-image: url('IMG-20250924-WA0050.jpg');"><h3>24 Sep 2025</h3></div>
+            <div class="card" style="background-image: url('IMG-20250924-WA0047.jpg');"><h3>24 Sep 2025</h3></div>
+            <div class="card" style="background-image: url('IMG-20250912-WA0011.jpg');"><h3>12 Sep 2025</h3></div>
+            <div class="card" style="background-image: url('IMG-20250912-WA0012.jpg');"><h3>12 Sep 2025</h3></div>
+            <div class="card" style="background-image: url('IMG-20250911-WA0016.jpg');"><h3>11 Sep 2025</h3></div>
+            <div class="card" style="background-image: url('IMG-20250911-WA0013.jpg');"><h3>11 Sep 2025</h3></div>
+            <div class="card" style="background-image: url('IMG-20250911-WA0010.jpg');"><h3>11 Sep 2025</h3></div>
+            <div class="card" style="background-image: url('IMG-20250911-WA0008 (1).jpg');"><h3>11 Sep 2025</h3></div>
+            <div class="card" style="background-image: url('IMG-20250911-WA0003.jpg');"><h3>11 Sep 2025</h3></div>
+            <div class="card" style="background-image: url('IMG-20250908-WA0020.jpg');"><h3>08 Sep 2025</h3></div>
+            <div class="card" style="background-image: url('IMG-20250908-WA0021.jpg');"><h3>08 Sep 2025</h3></div>
+            <div class="card" style="background-image: url('IMG-20250908-WA0019.jpg');"><h3>08 Sep 2025</h3></div>
+            <div class="card" style="background-image: url('IMG-20250908-WA0017.jpg');"><h3>08 Sep 2025</h3></div>
+            <div class="card" style="background-image: url('IMG-20250908-WA0022.jpg');"><h3>08 Sep 2025</h3></div>
+            <div class="card" style="background-image: url('IMG-20250908-WA0015.jpg');"><h3>08 Sep 2025</h3></div>
+            <div class="card" style="background-image: url('IMG-20250908-WA0016.jpg');"><h3>08 Sep 2025</h3></div>
+            <div class="card" style="background-image: url('IMG-20250908-WA0014.jpg');"><h3>08 Sep 2025</h3></div>
+            <div class="card" style="background-image: url('IMG-20250908-WA0018.jpg');"><h3>08 Sep 2025</h3></div>
+            <div class="card" style="background-image: url('IMG-20250908-WA0013.jpg');"><h3>08 Sep 2025</h3></div>
+            <div class="card" style="background-image: url('IMG-20250908-WA0012.jpg');"><h3>08 Sep 2025</h3></div>
+            <div class="card" style="background-image: url('IMG-20250908-WA0010.jpg');"><h3>08 Sep 2025</h3></div>
+            <div class="card" style="background-image: url('IMG-20250908-WA0007.jpg');"><h3>08 Sep 2025</h3></div>
+            <div class="card" style="background-image: url('IMG-20250908-WA0006.jpg');"><h3>08 Sep 2025</h3></div>
+            <div class="card" style="background-image: url('IMG-20250908-WA0011.jpg');"><h3>08 Sep 2025</h3></div>
+            <div class="card" style="background-image: url('IMG-20250908-WA0009.jpg');"><h3>08 Sep 2025</h3></div>
+            <div class="card" style="background-image: url('IMG-20250908-WA0008.jpg');"><h3>08 Sep 2025</h3></div>
+            <div class="card" style="background-image: url('IMG-20250908-WA0005.jpg');"><h3>08 Sep 2025</h3></div>
+            <div class="card" style="background-image: url('IMG-20250908-WA0003.jpg');"><h3>08 Sep 2025</h3></div>
+            <div class="card" style="background-image: url('IMG-20250908-WA0004.jpg');"><h3>08 Sep 2025</h3></div>
+            <div class="card" style="background-image: url('IMG-20250724-WA0029.jpg');"><h3>24 Jul 2025</h3></div>
+            <div class="card" style="background-image: url('IMG-20250724-WA0028.jpg');"><h3>24 Jul 2025</h3></div>
+            <div class="card" style="background-image: url('IMG-20250724-WA0027.jpg');"><h3>24 Jul 2025</h3></div>
+            <div class="card" style="background-image: url('IMG-20250724-WA0026.jpg');"><h3>24 Jul 2025</h3></div>
+            <div class="card" style="background-image: url('IMG-20250724-WA0025.jpg');"><h3>24 Jul 2025</h3></div>
+            <div class="card" style="background-image: url('IMG-20250724-WA0024.jpg');"><h3>24 Jul 2025</h3></div>
+            <div class="card" style="background-image: url('IMG-20250724-WA0023.jpg');"><h3>24 Jul 2025</h3></div>
+            <div class="card" style="background-image: url('banner.jpg');"><h3>Banner</h3></div>
+        </div>
+    </section>
+
+    <script>
+        window.addEventListener("load", function () {
+            // setTimeout digunakan untuk memberi jeda waktu
+            // 6000 milidetik = 6 detik
+            setTimeout(function() {
+                const loader = document.querySelector(".loader-wrapper");
+                
+                // Mulai animasi menghilang
+                loader.classList.add("hidden");
+
+                // Hapus elemen dari memori setelah transisi selesai
+                loader.addEventListener("transitionend", function() {
+                    if (loader.parentNode) {
+                        loader.parentNode.removeChild(loader);
+                    }
+                });
+            }, 6000); // <-- Angka ini mengatur durasi (6000 = 6 detik)
+        });
+    </script>
+
+</body>
+</html>
